@@ -1,0 +1,7 @@
+bd89b5c03ea70c4cdb7bbd30ec425e4c *DESCRIPTION
+eaf7544fa193939d0d5fcb3b9df92509 *NAMESPACE
+d731e4daafe4e2d6e4f853d0bd92e003 *R/serve.R
+2bfacc6700bb3f4306254022f7f4bfef *R/utils.R
+69f5e19334756584f5a1c280df5dfafd *README.md
+fc9da638f6d40f28c40576caaddf45d8 *inst/bin/servr
+54baafef15aef2383002a61d3ca0e2b9 *man/httd.Rd
