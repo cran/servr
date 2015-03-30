@@ -1,22 +1,32 @@
 # servr
 
+[![Build Status](https://travis-ci.org/yihui/servr.svg)](https://travis-ci.org/yihui/servr)
+
 A simple HTTP server to serve files under a given directory based on the
-[**httpuv**](http://cran.r-project.org/package=httpuv) package.
+[**httpuv**](http://cran.rstudio.com/package=httpuv) package.
 
-For now, you can install from [RForge](http://www.rforge.net/servr/):
+You can install this package from
+[CRAN](http://cran.rstudio.com/package=servr) (stable version) or
+[RForge](http://www.rforge.net/servr/) (development version):
 
-```s
-install.packages('servr', repos = 'http://www.rforge.net/')
+```r
+install.packages('servr')  # stable version; use a CRAN mirror, or
+install.packages('servr', repos = 'http://rforge.net')  # devel version
 ```
 
-This is only a little exercise of mine while I was learning **httpuv**, and
-may not be really useful. To some degree, it is like `python -m
-SimpleHTTPServer` or `python -m http.server`. This package may be used to
-serve:
+This package is licensed under GPL.
 
-- [**googleVis**]() charts (to solve the Flash security problem)
+## Serve static files
+
+To some degree, this package is like `python -m SimpleHTTPServer` or `python -m
+http.server`. It may be used to serve:
+
+- [**googleVis**](http://cran.rstudio.com/package=googleVis) charts (to solve
+  the Flash security problem)
 - D3 charts which need to load JSON from local files (see also the
   [**animint**](https://github.com/tdhock/animint) package)
+- [**rCharts**](http://rcharts.io) and
+  [**samatha**](https://github.com/DASpringate/samatha), etc
 
 You can either run `servr::httd()` in an interactive R session, or run from
 command line:
@@ -44,4 +54,33 @@ servr -b  # launch the browser
 servr -b -p4000  # change port to 4000
 ```
 
-This package is licensed under GPL.
+## Serve dynamic documents
+
+Besides `httd()`, there are functions `jekyll()`, `rmdv1()`, and `rmdv2()` in
+this package to serve HTML files generated from R Markdown documents (via
+[**knitr**](http://yihui.name/knitr) or
+[**rmarkdown**](http://rmarkdown.rstudio.com)). R Markdown documents can be
+automatically re-compiled when their HTML output files are older than the
+corresponding source files, and HTML pages in the web browser can be
+automatically refreshed accordingly, so you can focus on writing R Markdown
+documents, and results will be updated on the fly in the web browser. This is
+even more useful when you write R Markdown documents in the RStudio IDE, because
+the HTML files are displayed in the RStudio viewer pane, and you can put the
+source document and its output side by side.
+
+![Jekyll with servr and knitr](http://i.imgur.com/gKVGhiP.png)
+
+## Serve package vignettes
+
+The function `vign()` can be used to serve R Markdown/HTML package vignettes.
+The HTML output files are generated and displayed in the web browser so you can
+preview the vignettes, and they will be cleaned up after they are loaded in the
+web browser to make sure your source package is clean.
+
+## Daemonized server
+
+All server functions be used in the daemonized mode, i.e., they can be
+non-blocking in the R session, which allows you to continue working in the R
+console after the server is launched. This mode can be set via the argument
+`daemon = TRUE` in most server functions. See `?server_config` for more
+information.
