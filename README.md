@@ -7,11 +7,11 @@ A simple HTTP server to serve files under a given directory based on the
 
 You can install this package from
 [CRAN](http://cran.rstudio.com/package=servr) (stable version) or
-[RForge](http://www.rforge.net/servr/) (development version):
+[XRAN](http://yihui.name/xran/) (development version):
 
 ```r
 install.packages('servr')  # stable version; use a CRAN mirror, or
-install.packages('servr', repos = 'http://rforge.net')  # devel version
+install.packages('servr', repos = 'http://yihui.name/xran')  # devel version
 ```
 
 This package is licensed under GPL.
@@ -53,6 +53,13 @@ servr  # serve the current directory
 servr -b  # launch the browser
 servr -b -p4000  # change port to 4000
 ```
+
+## Serve and watch a directory
+
+Similar to `httd()`, the function `httw()` can both serve and watch a directory.
+If you are viewing an HTML file in the browser, it will be automatically
+refreshed whenever there are any changes in the directory (e.g. you added,
+deleted, or modified certain files in the directory).
 
 ## Serve dynamic documents
 

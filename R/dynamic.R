@@ -73,18 +73,18 @@ jekyll = function(
   }
   build_all = function() knit_maybe(input, output, script, method = 'jekyll')
 
-  in_dir(dir, {
-    if (!serve) build_all()
-    jekyll_build()
-  })
-  if (!serve) return()
-
+  if (!serve) {
+    in_dir(dir, {
+      build_all()
+      jekyll_build()
+    })
+    return()
+  }
   dynamic_site(
     dir, ...,
     build = function(...) {
-      if (!file_test('-d', destination)) jekyll_build()
       update = build_all()
-      if (update) jekyll_build()
+      if (update || !file_test('-d', destination)) jekyll_build()
       update
     },
     site.dir = destination,
@@ -182,10 +182,13 @@ dynamic_site = function(
       # post-process HTML content: inject the websocket code
       body = res$body
       if (is.raw(body)) body = rawToChar(body)
-      body = sub(
+      body = if (length(grep('</head>', body))) sub(
         '</head>', paste(c(js, '</head>'), collapse = '\r\n'), body,
         fixed = TRUE, useBytes = TRUE
-      )
+      ) else if (length(grep('</html>', body)) == 0) {
+        # there is no </head> or </html>, just append js after the document
+        paste(c(body, js), collapse = '\r\n')
+      } else body
       res$body = body
       res
     },
@@ -205,7 +208,9 @@ dynamic_site = function(
         # notify the client that the output has been updated
         tryCatch(
           if (build(jsonlite::fromJSON(message))) ws$send('reload'),
-          error = function(e) error <<- TRUE
+          error = function(e) {
+            error <<- TRUE; print(e)
+          }
         )
       })
     }

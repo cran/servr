@@ -1,3 +1,17 @@
+		 CHANGES IN servr VERSION 0.3
+
+NEW FEATURES
+
+- added a function `httw()` to watch for changes under a directory and refresh
+  an HTML page automatically (if it is being viewed in the browser) when any
+  files are modified
+
+- servr accepts HTTP Range requests now (thanks, @rekado, #21)
+
+BUG FIXES
+
+- servr did not work with RStudio Server (#20)
+
 		 CHANGES IN servr VERSION 0.2
 
 NEW FEATURES

@@ -1,9 +1,14 @@
-#' Serve the static files under a directory
+#' Serve static files under a directory
 #'
 #' If there is an \file{index.html} under this directory, it will be displayed;
 #' otherwise the list of files is displayed, with links on their names. After we
 #' run this function, we can go to \samp{http://localhost:port} to browse the
 #' web pages either created from R or read from HTML files.
+#'
+#' \code{httd()} is a pure static server, and \code{httw()} is similar but
+#' watches for changes under the directory: if an HTML file is being viewed in
+#' the browser, and any files are modified under the directory, the HTML page
+#' will be automatically refreshed.
 #' @inheritParams server_config
 #' @param ... server configurations passed to \code{\link{server_config}()}
 #' @export
@@ -21,6 +26,47 @@ httd = function(dir = '.', ...) {
   res$browse()
   app = list(call = serve_dir(dir))
   res$start_server(app)
+}
+
+#' @param pattern a regular expression passed to \code{\link{list.files}()} to
+#'   determine the files to watch
+#' @param all_files whether to watch all files including the hidden files
+#' @param handler a function to be called every time any files are changed or
+#'   added under the directory; its argument is a character vector of the
+#'   filenames of the files modified or added
+#' @rdname httd
+#' @export
+httw = function(dir = '.', pattern = NULL, all_files = FALSE, handler = NULL, ...) {
+  dynamic_site(dir, ..., build = watch_dir(
+    '.', pattern = pattern, all_files = all_files, handler = handler
+  ))
+}
+
+watch_dir = function(dir = '.', pattern = NULL, all_files = FALSE, handler = NULL) {
+  dir = normalizePath(dir, mustWork = TRUE)
+  mtime = function(dir) {
+    file.info(
+      list.files(dir, pattern, all.files = all_files, recursive = TRUE, no.. = TRUE)
+    )[, 'mtime', drop = FALSE]
+  }
+  info = mtime(dir)
+  function(...) {
+    info2 = mtime(dir)
+    changed = !identical(info, info2)
+    if (changed) {
+      if (is.function(handler)) {
+        f1 = rownames(info)
+        f2 = rownames(info2)
+        f3 = setdiff(f2, f1)    # new files
+        f4 = intersect(f1, f2)  # old files
+        f5 = f4[info[f4, 1] != info2[f4, 1]]  # modified files
+        handler(c(f3, na.omit(f5)))
+        info2 = mtime(dir)
+      }
+      info <<- info2
+    }
+    changed
+  }
 }
 
 #' Server configurations
@@ -88,6 +134,8 @@ server_config = function(
 serve_dir = function(dir = '.') function(req) {
   owd = setwd(dir); on.exit(setwd(owd))
   path = req$PATH_INFO
+  status = 200L
+
   if (grepl('^/', path)) {
     path = paste('.', path, sep = '')  # the requested file
   } else if (path == '') path = '.'
@@ -109,9 +157,31 @@ serve_dir = function(dir = '.') function(req) {
     if (!file.exists(path))
       return(list(status = 404L, headers = list('Content-Type' = 'text/plain'),
                   body = paste('Not found:', path, '\r\n')))
+
     type = guess_type(path)
-    readBin(path, 'raw', file.info(path)[, 'size'])
+    range = req$HTTP_RANGE
+
+    if (is.null(range)) {
+      readBin(path, 'raw', file.info(path)[, 'size'])
+    } else {
+      range = strsplit(range, split = "(=|-)")
+      firstByte = as.numeric(range[[1]][2])
+      lastByte = as.numeric(range[[1]][3])
+
+      if ((range[[1]][1] != "bytes") ||
+          (firstByte >= lastByte) ||
+          (lastByte == 0))
+        return(list(status = 416L, headers = list('Content-Type' = 'text/plain'),
+                    body = 'Requested range not satisfiable\r\n'))
+
+      status = 206L  # partial content
+
+      con = file(path, open = "rb", raw = TRUE)
+      on.exit(close(con))
+      seek(con, where = firstByte, origin = "start")
+      readBin(con, 'raw', lastByte - firstByte)
+    }
   }
   if (is.character(body) && length(body) > 1) body = paste(body, collapse='\r\n')
-  list(status = 200L, headers = list('Content-Type' = type), body = body)
+  list(status = status, headers = list('Content-Type' = type), body = body)
 }

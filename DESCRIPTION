@@ -1,11 +1,12 @@
 Package: servr
 Type: Package
 Title: A Simple HTTP Server to Serve Static Files or Dynamic Documents
-Version: 0.2
-Date: 2015-03-29
+Version: 0.3
+Date: 2016-02-29
 Authors@R: c(
   person("Carson", "Sievert", role = "ctb"),
   person("Jesse", "Anderson", role = "ctb"),
+  person("Ramnath", "Vaidyanathan", role = "ctb"),
   person("Yihui", "Xie", role = c("aut", "cre"), email = "xie@yihui.name"),
   person()
   )
@@ -19,10 +20,12 @@ Suggests: tools, knitr (>= 1.9), rmarkdown
 License: GPL
 URL: https://github.com/yihui/servr
 BugReports: https://github.com/yihui/servr/issues
-Packaged: 2015-03-29 06:45:50 UTC; yihui
+RoxygenNote: 5.0.1
+NeedsCompilation: no
+Packaged: 2016-02-29 16:11:17 UTC; yihui
 Author: Carson Sievert [ctb],
   Jesse Anderson [ctb],
+  Ramnath Vaidyanathan [ctb],
   Yihui Xie [aut, cre]
-NeedsCompilation: no
 Repository: CRAN
-Date/Publication: 2015-03-30 07:36:18
+Date/Publication: 2016-02-29 18:39:53
