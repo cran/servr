@@ -48,8 +48,8 @@
 #'   URL setting will be read from \file{_config.yml} (the \samp{baseurl} field)
 #'   of the website if present. You should not pass \code{baseurl} to the
 #'   function \code{jekyll()} directly.
-#' @references R Markdown v1: \url{http://cran.rstudio.com/package=markdown}. R
-#'   Markdown v2: \url{http://rmarkdown.rstudio.com}. For Jekyll, see
+#' @references R Markdown v1: \url{https://cran.r-project.org/package=markdown}.
+#'   R Markdown v2: \url{http://rmarkdown.rstudio.com}. For Jekyll, see
 #'   \url{http://jekyllrb.com}. The GitHub repository
 #'   \url{https://github.com/yihui/knitr-jekyll} is an example of serving Jekyll
 #'   websites with \code{servr::jekyll()}.
@@ -182,6 +182,9 @@ dynamic_site = function(
       # post-process HTML content: inject the websocket code
       body = res$body
       if (is.raw(body)) body = rawToChar(body)
+      if (length(grep(
+        '<!-- DISABLE-SERVR-WEBSOCKET -->', body, fixed = TRUE, useBytes = TRUE
+      ))) return(res)
       body = if (length(grep('</head>', body))) sub(
         '</head>', paste(c(js, '</head>'), collapse = '\r\n'), body,
         fixed = TRUE, useBytes = TRUE
