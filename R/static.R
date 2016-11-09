@@ -143,11 +143,13 @@ serve_dir = function(dir = '.') function(req) {
     # ensure a trailing slash if the requested dir does not have one
     if (path != '.' && !grepl('/$', path)) return(list(
       status = 301L, body = '', headers = list(
-        'Location' = sprintf('/%s/', req$PATH_INFO)
+        'Location' = sprintf('%s/', req$PATH_INFO)
       )
     ))
     type = 'text/html'
-    if (file.exists(idx <- file.path(path, 'index.html'))) readLines(idx) else {
+    if (file.exists(idx <- file.path(path, 'index.html'))) {
+      readLines(idx, warn = FALSE)
+    } else {
       d = file.info(list.files(path, all.files = TRUE, full.names = TRUE))
       title = escape_html(path)
       html_doc(c(sprintf('<h1>Index of %s</h1>', title), fileinfo_table(d)),
