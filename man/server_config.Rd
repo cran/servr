@@ -3,7 +3,8 @@
 \alias{server_config}
 \title{Server configurations}
 \usage{
-server_config(dir, host = "127.0.0.1", port, browser, daemon, interval = 1, baseurl = "")
+server_config(dir, host = "127.0.0.1", port, browser, daemon, interval = 1, 
+    baseurl = "", initpath = "")
 }
 \arguments{
 \item{dir}{the root directory to serve}
@@ -23,9 +24,11 @@ command line argument \code{-b} was passed to R (see
 browser if available}
 
 \item{daemon}{whether to launch a daemonized server (the server does not
-block the current R session) or a blocking server; by default, it is
-\code{TRUE} if a command line argument \code{-d} was passed to R (through
-\command{Rscript}); normally it should be \code{FALSE} by default}
+block the current R session) or a blocking server; by default, it is the
+global option \code{getOption('servr.daemon')} (e.g., you can set
+\code{options(servr.daemon = TRUE)}); if this option was not set,
+\code{daemon = TRUE} if a command line argument \code{-d} was passed to R
+(through \command{Rscript}); normally it should be \code{FALSE} by default}
 
 \item{interval}{the time interval used to check if an HTML page needs to be
 rebuilt (by default, it is checked every second); at the moment, the
@@ -34,6 +37,9 @@ the future}
 
 \item{baseurl}{the base URL (the full URL will be
 \code{http://host:port/baseurl})}
+
+\item{initpath}{the initial path in the URL (e.g. you can open a specific
+HTML file initially)}
 }
 \value{
 A list of configuration information of the form \code{list(host,
