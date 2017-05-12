@@ -132,14 +132,15 @@ server_config = function(
     browse = function() {
       if (browser) {
         browseURL(url, browser = get_browser())
-      } else message('serving the directory ', dir, ' at ', url)
+      }
+      message('Serving the directory ', dir, ' at ', url)
     }
   )
 }
 
 serve_dir = function(dir = '.') function(req) {
   owd = setwd(dir); on.exit(setwd(owd))
-  path = req$PATH_INFO
+  path = decode_path(req)
   status = 200L
 
   if (grepl('^/', path)) {
@@ -162,34 +163,52 @@ serve_dir = function(dir = '.') function(req) {
                title = title)
     }
   } else {
+    # use the custom 404.html only if the path looks like a directory or .html
+    try_404 = function(path) {
+      file.exists('404.html') && grepl('(/|[.]html)$', path, ignore.case = TRUE)
+    }
+    # FIXME: using 302 here because 404.html may contain relative paths, e.g. if
+    # /foo/bar/hi.html gives 404, I cannot just read 404.html and display it,
+    # because it will be treated as /foo/bar/404.html; if 404.html contains
+    # paths like ./css/style.css, I don't know how to let the browser know that
+    # it means /css/style.css instead of /foo/bar/css/style.css
     if (!file.exists(path))
-      return(list(status = 404L, headers = list('Content-Type' = 'text/plain'),
-                  body = paste('Not found:', path, '\r\n')))
+      return(if (try_404(path)) list(
+        status = 302L, body = '', headers = list('Location' = '/404.html')
+      ) else list(
+        status = 404L, headers = list('Content-Type' = 'text/plain'),
+        body = paste2('Not found:', path)
+      ))
 
     type = guess_type(path)
     range = req$HTTP_RANGE
 
-    if (is.null(range)) {
-      readBin(path, 'raw', file.info(path)[, 'size'])
-    } else {
-      range = strsplit(range, split = "(=|-)")
-      firstByte = as.numeric(range[[1]][2])
-      lastByte = as.numeric(range[[1]][3])
+    # Chrome sends the range reuest 'bytes=0-' and I'm not sure what to do:
+    # http://stackoverflow.com/a/18745164/559676
+    if (is.null(range) || identical(range, 'bytes=0-')) read_raw(path) else {
+      range = strsplit(range, split = "(=|-)")[[1]]
+      b2 = as.numeric(range[2])
+      b3 = as.numeric(range[3])
 
-      if ((range[[1]][1] != "bytes") ||
-          (firstByte >= lastByte) ||
-          (lastByte == 0))
-        return(list(status = 416L, headers = list('Content-Type' = 'text/plain'),
-                    body = 'Requested range not satisfiable\r\n'))
+      if (length(range) < 3 || (range[1] != "bytes") || (b2 >= b3) || (b3 == 0))
+        return(list(
+          status = 416L, headers = list('Content-Type' = 'text/plain'),
+          body = 'Requested range not satisfiable\r\n'
+        ))
 
       status = 206L  # partial content
 
       con = file(path, open = "rb", raw = TRUE)
       on.exit(close(con))
-      seek(con, where = firstByte, origin = "start")
-      readBin(con, 'raw', lastByte - firstByte)
+      seek(con, where = b2, origin = "start")
+      readBin(con, 'raw', b3 - b2 + 1)
     }
   }
-  if (is.character(body) && length(body) > 1) body = paste(body, collapse='\r\n')
-  list(status = status, headers = list('Content-Type' = type), body = body)
+  if (is.character(body) && length(body) > 1) body = paste2(body)
+  list(
+    status = status, body = body,
+    headers = c(list('Content-Type' = type), if (status == 206L) list(
+      'Content-Range' = paste(sub('=', ' ', req$HTTP_RANGE), file_size(path), sep = '/')
+    ))
+  )
 }

@@ -164,6 +164,7 @@ dynamic_site = function(
   in_dir(dir, build())
 
   js  = readLines(system.file('resources', 'ws-reload.html', package = 'servr'))
+  if (baseurl == '/') baseurl = ''
   res = server_config(dir, ..., baseurl = baseurl)
   timeout = new_timeout(res$interval)
   res$browse()
@@ -173,7 +174,7 @@ dynamic_site = function(
       owd = setwd(dir); on.exit(setwd(owd))
       setwd(site.dir)
       if (baseurl != '') {
-        path = req$PATH_INFO
+        path = decode_path(req)
         if (substr(path, 1, nchar(baseurl)) == baseurl)
           req$PATH_INFO = substr(path, nchar(baseurl) + 1, nchar(path))
       }
@@ -189,11 +190,11 @@ dynamic_site = function(
         '<!-- DISABLE-SERVR-WEBSOCKET -->', body, fixed = TRUE, useBytes = TRUE
       ))) return(res)
       body = if (length(grep('</head>', body))) sub(
-        '</head>', paste(c(js, '</head>'), collapse = '\r\n'), body,
+        '</head>', paste2(js, '</head>'), body,
         fixed = TRUE, useBytes = TRUE
       ) else if (length(grep('</html>', body)) == 0) {
         # there is no </head> or </html>, just append js after the document
-        paste(c(body, js), collapse = '\r\n')
+        paste2(body, js)
       } else body
       res$body = body
       res

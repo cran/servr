@@ -1,3 +1,17 @@
+		 CHANGES IN servr VERSION 0.6
+
+NEW FEATURES
+
+- on 404 (page not found), 404.html will be displayed if it exists under the
+  root directory
+
+- improved the support for HTTP Range requests, e.g. servr can correctly serve
+  MP4 videos now in major browsers including Safari
+
+BUG FIXES
+
+- servr should decode requested paths before reading them (https://github.com/rstudio/blogdown/issues/85)
+
 		 CHANGES IN servr VERSION 0.5
 
 NEW FEATURES
