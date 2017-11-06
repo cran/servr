@@ -1,11 +1,11 @@
-4338d49c4d9c3162f6d0c7c48e733117 *DESCRIPTION
+12ac4a30820c0d2a890cf82cbba6623f *DESCRIPTION
 5538d060bab93439136b973fd75f0ebc *NAMESPACE
-5c54488a2261ce2d25a9d384e9e53e12 *NEWS
+3d2a87f8dd5c06dadd67b32731c01b1a *NEWS
 1a8efc393a1222785cfa8d5d93b5e20f *R/dynamic.R
-0497dc56677f78359eda2fb7cea8627a *R/make.R
+ea9772910e5c4d0e152c1a41241a8f54 *R/make.R
 7b7fd732575f036c813653fe4a41721d *R/notebook.R
-e328f02f74577d7add848d10d18c3cdf *R/static.R
-c03ceaa7aaa5d5a846f91a872c3a9518 *R/utils.R
+3c7a45eb2871653d8a4e09e7f1f5a0a4 *R/static.R
+4ea08639bb4bef28b0e2056244a51eee *R/utils.R
 0963b05bc0e81cf39f6c45e2351b6ded *R/vignette.R
 5b6e1ea66f4f371c03619b7b5201c141 *README.md
 fc9da638f6d40f28c40576caaddf45d8 *inst/bin/servr
@@ -19,7 +19,7 @@ a2766200c1340c713fdff01b36b8f8d2 *inst/examples/rmd/example.Rmd
 a0d214b04a219d1fcbec74c52f7dd67e *man/daemon_stop.Rd
 b5beb141c9ecf1d8d84371c17c6ae545 *man/dynamic_site.Rd
 2e0bb6bd41c4a89deb03e0d42ec2f0f1 *man/httd.Rd
-54b41577f57b99f2c7d751608308a923 *man/make.Rd
+89c6146f404ef3832ef1f57c55d2920e *man/make.Rd
 a12546483cd48597ef73852e5b49e003 *man/notebook.Rd
 b58acfe9a5ef0ccf48a30426e6a50da0 *man/serve_example.Rd
 628d35a54b3ec2a117d44e8020d0618e *man/server_config.Rd

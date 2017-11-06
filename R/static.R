@@ -116,26 +116,35 @@ server_config = function(
   if (missing(browser)) browser = interactive() || '-b' %in% cargs || is_rstudio()
   if (missing(port))
     port = if (length(port <- grep('^-p[0-9]{4,}$', cargs, value = TRUE)) == 1)
-      as.integer(sub('^-p', '', port)) else random_port(4321L)
+      as.integer(sub('^-p', '', port)) else random_port()
   if (missing(daemon)) daemon = getOption('servr.daemon', '-d' %in% cargs)
   damn_library('methods')
   url = sprintf('http://%s:%d', host, port)
   if (baseurl != '') url = paste(url, baseurl, sep = '')
   url = paste0(url, if (initpath != '' && !grepl('^/', initpath)) '/', initpath)
   list(
-    host = host,
-    port = port,
-    interval = interval,
+    host = host, port = port, interval = interval, url = url,
     start_server = function(app) {
-      # a daemonized server; stop it using servr::daemon_stop()
-      if (daemon) return(daemon_hint(startDaemonizedServer(host, port, app)))
+      # a built-in daemonized server
+      if (daemon && !requireNamespace('later', quietly = TRUE))
+        return(daemon_hint(startDaemonizedServer(host, port, app)))
 
       server = startServer(host, port, app)
-      on.exit(stopServer(server), add = TRUE)
-
-      while (TRUE) {
-        service()
-        Sys.sleep(0.001)
+      # a daemonized server based on later
+      if (daemon) {
+        daemon_hint(server, TRUE)
+        daemon_serve = function() {
+          if (!server %in% daemon_list()) return()
+          service()
+          later::later(daemon_serve, 0.01)
+        }
+        daemon_serve()
+      } else {
+        on.exit(stopServer(server), add = TRUE)
+        while (TRUE) {
+          service()
+          Sys.sleep(0.001)
+        }
       }
     },
     browse = function() {
