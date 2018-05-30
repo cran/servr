@@ -55,20 +55,13 @@ escape_html = function(x) {
 # discuss it)
 damn_library = function(pkg) library(pkg, character.only = TRUE)
 
-is_rstudio = function() Sys.getenv('RSTUDIO') == '1'
+is_rstudio = function() {
+  requireNamespace('rstudioapi', quietly = TRUE) && rstudioapi::isAvailable()
+}
 
 # use the RStudio viewer if possible
 get_browser = function() {
-  browser = if ('tools:rstudio' %in% search()) getOption('viewer') else {
-    if (is_rstudio()) getFromNamespace('viewer', 'rstudioapi')
-  }
-  # rstudio::viewer() does not seem to work when a separate R session is
-  # launched from RStudio, so we need to try() and if it fails, fall back to the
-  # default web browser
-  if (is.null(browser) || !is.function(browser) ||
-        inherits(try(browser('http://www.rstudio.com'), silent = TRUE), 'try-error'))
-    browser = getOption('browser')
-  browser
+  if (is_rstudio()) rstudioapi::viewer else getOption('browser')
 }
 
 rscript = function(code, input) {
@@ -108,11 +101,9 @@ guess_type = function(path) {
 servrEnv$daemon_list = list()
 
 # a hint on how to stop the daemonized server
-daemon_hint = function(server, daemon = FALSE) {
+daemon_hint = function(server) {
   if (!interactive()) return(invisible(server))
-  servrEnv$daemon_list[[length(servrEnv$daemon_list) + 1]] = if (daemon) {
-    structure(server, httpuv_daemon = TRUE)
-  } else server
+  servrEnv$daemon_list[[length(servrEnv$daemon_list) + 1]] = server
   message('To stop the server, run servr::daemon_stop("', server, '")',
           ' or restart your R session')
   invisible(server)
@@ -120,21 +111,14 @@ daemon_hint = function(server, daemon = FALSE) {
 
 #' Utilities for daemonized servers
 #'
-#' The server functions in this package will return server handles if daemonized
-#' servers were used (e.g., \code{servr::httd(daemon = TRUE)}). You can pass the
-#' handles to \code{daemon_stop()} to stop the daemonized servers. Because
-#' stopping a daemonized server more than once using
-#' \code{httpuv::\link{stopDaemonizedServer}()} will crash the R session, this
-#' function will check if a server has been stopped before really attempting to
-#' stop it, so it is safer than the \code{stopDaemonizedServer()} in
-#' \pkg{httpuv}.
+#' The server functions in this package will return server handles. You can pass the
+#' handles to \code{daemon_stop()} to stop the daemonized servers.
 #' @param which the server handles returned by server functions; by default, all
 #'   existing handles in the current R session obtained from
 #'   \code{daemon_list()}, i.e., all daemon servers will be stopped by default
 #' @return  The function \code{daemon_list()} returns a list of existing server
 #'   handles, and \code{daemon_stop()} returns an invisible \code{NULL}.
 #' @export
-#' @importFrom httpuv stopDaemonizedServer
 daemon_stop = function(which = daemon_list()) {
   list = daemon_list()
   for (d in which) {
@@ -144,7 +128,7 @@ daemon_stop = function(which = daemon_list()) {
       next
     }
     d = list[[i]]
-    if (isTRUE(attr(d, 'httpuv_daemon'))) stopServer(d) else stopDaemonizedServer(d)
+    stopServer(d)
     servrEnv$daemon_list = setdiff(servrEnv$daemon_list, d)
   }
 }
@@ -234,3 +218,15 @@ paste2 = function(...) paste(c(...), collapse = '\r\n')
 file_size = function(path) file.info(path)[, 'size']
 
 read_raw = function(path) readBin(path, 'raw', file_size(path))
+
+# store the last browsing function, so that we can reopen a page after it has
+# been closed in the browser
+servrEnv$browse = function(reopen = TRUE) {}
+
+#' Reopen the last browsed page
+#'
+#' If you have launched a page in the browser via \pkg{servr} but closed it
+#' later, you may call this function to reopen it.
+#' @export
+#' @examples servr::browse_last()
+browse_last = function() servrEnv$browse(TRUE)
