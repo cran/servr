@@ -3,15 +3,15 @@
 [![Build Status](https://travis-ci.org/yihui/servr.svg)](https://travis-ci.org/yihui/servr) ![CRAN downloads](http://cranlogs.r-pkg.org/badges/grand-total/servr)
 
 A simple HTTP server to serve files under a given directory based on the
-[**httpuv**](https://cran.rstudio.org/package=httpuv) package.
+[**httpuv**](https://cran.r-project.org/package=httpuv) package.
 
 You can install this package from
-[CRAN](https://cran.rstudio.org/package=servr) (stable version) or
-[XRAN](http://yihui.name/xran/) (development version):
+[CRAN](https://cran.r-project.org/package=servr) (stable version) or
+[XRAN](https://xran.yihui.name) (development version):
 
 ```r
 install.packages('servr')  # stable version; use a CRAN mirror, or
-install.packages('servr', repos = 'http://yihui.name/xran')  # devel version
+install.packages('servr', repos = 'https://xran.yihui.name')  # devel version
 ```
 
 This package is licensed under GPL.
@@ -25,7 +25,7 @@ http.server`. It may be used to serve:
     - [**bookdown**](https://github.com/rstudio/bookdown) books
     - [**blogdown**](https://github.com/rstudio/bookdown) websites
     - [**xaringan**](https://github.com/rstudio/bookdown) presentations
-- [**googleVis**](https://cran.rstudio.org/package=googleVis) charts (to solve
+- [**googleVis**](https://cran.r-project.org/package=googleVis) charts (to solve
   the Flash security problem)
 - D3 charts which need to load JSON from local files (see also the
   [**animint**](https://github.com/tdhock/animint) package)
@@ -69,8 +69,8 @@ deleted, or modified certain files in the directory).
 
 Besides `httd()`, there are functions `jekyll()`, `rmdv1()`, and `rmdv2()` in
 this package to serve HTML files generated from R Markdown documents (via
-[**knitr**](http://yihui.name/knitr) or
-[**rmarkdown**](http://rmarkdown.rstudio.com)). R Markdown documents can be
+[**knitr**](https://yihui.name/knitr/) or
+[**rmarkdown**](https://rmarkdown.rstudio.com)). R Markdown documents can be
 automatically re-compiled when their HTML output files are older than the
 corresponding source files, and HTML pages in the web browser can be
 automatically refreshed accordingly, so you can focus on writing R Markdown
