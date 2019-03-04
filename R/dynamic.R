@@ -156,17 +156,20 @@ dynamic_rmd = function(dir, script, ..., method, in_session = FALSE) {
 # that need to be compiled to generate HTML files); we use WebSockets to notify
 # the HTML pages whether they need to refresh themselves, which is determined by
 # the value returned from the build() function
+#' @importFrom jsonlite fromJSON toJSON
 dynamic_site = function(
   dir = '.', ..., build = function(...) FALSE, site.dir = dir, baseurl = '',
-  pre_process = identity, post_process = identity, response = serve_dir()
+  pre_process = identity, post_process = identity, response = serve_dir(),
+  ws_handler = pkg_file('ws-reload.js')
 ) {
   dir = normalizePath(dir, mustWork = TRUE)
-  in_dir(dir, build())
+  in_dir(dir, build(NULL))
 
-  js  = readLines(system.file('resources', 'ws-reload.html', package = 'servr'))
+  js  = readLines(pkg_file('ws-create.html'))
   if (baseurl == '/') baseurl = ''
   res = server_config(dir, ..., baseurl = baseurl)
-  timeout = new_timeout(res$interval)
+  js = gsub('!!SERVR_HANDLER', paste(' ', readLines(ws_handler), collapse = '\n'), js, fixed = TRUE)
+  js = gsub('!!SERVR_INTERVAL', format(res$interval * 1000), js, fixed = TRUE)
 
   app = list(
     call = function(req) {
@@ -199,29 +202,18 @@ dynamic_site = function(
       res
     },
     onWSOpen = function(ws) {
-      # the client keeps on sending messages to ws, and ws needs to decide when
-      # to update output from source files
-      error = FALSE  # when an error occurred, stop sending messages
       ws$onMessage(function(binary, message) {
-        # if the last build errored, wait for 1, 2, 4, 8, 16, ... seconds,
-        # otherwise restore the default time interval
-        if (!timeout(error)) {
-          error <<- NA  # in an indetermined state (wait and see)
-          return()
-        }
         owd = setwd(dir); on.exit(setwd(owd))
-        error <<- FALSE
-        # notify the client that the output has been updated
-        tryCatch(
-          if (build(jsonlite::fromJSON(message))) ws$send('reload'),
-          error = function(e) {
-            error <<- TRUE; print(e)
-          }
-        )
+        # send the result of build() to the websocket client
+        ws$send(tryCatch(
+          toJSON(build(fromJSON(message)), auto_unbox = TRUE, null = 'null'),
+          error = function(e) { print(e); 'null' }
+        ))
       })
     }
   )
   res$start_server(app)
+  invisible(res)
 }
 
 #' Determine if R Markdown files need to be re-built

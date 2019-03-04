@@ -24,6 +24,7 @@ httd = function(dir = '.', ...) {
   res = server_config(dir, ...)
   app = list(call = serve_dir(dir))
   res$start_server(app)
+  invisible(res)
 }
 
 #' @param watch a directory under which \code{httw()} is to watch for changes;
@@ -66,6 +67,7 @@ watch_dir = function(dir = '.', pattern = NULL, all_files = FALSE, handler = NUL
         f3 = setdiff(f2, f1)    # new files
         f4 = intersect(f1, f2)  # old files
         f5 = f4[info[f4, 1] != info2[f4, 1]]  # modified files
+        info <<- info2
         handler(c(f3, na.omit(f5)))
         info2 = mtime(dir)
       }
@@ -101,20 +103,20 @@ watch_dir = function(dir = '.', pattern = NULL, all_files = FALSE, handler = NUL
 #'   (through \command{Rscript}), or the server is running in an interactive R
 #'   session.
 #' @param interval The time interval used to check if an HTML page needs to be
-#'   rebuilt (by default, it is checked every second). At the moment, the
-#'   smallest possible \code{interval} is set to be 1, and this may change in
-#'   the future.
+#'   rebuilt (by default, it is checked every second).
 #' @param baseurl The base URL (the full URL will be
 #'   \code{http://host:port/baseurl}).
 #' @param initpath The initial path in the URL (e.g. you can open a specific
 #'   HTML file initially).
+#' @param verbose Whether to print messages when launching the server.
 #' @inheritParams httpuv::startServer
 #' @export
 #' @return A list of configuration information of the form \code{list(host,
 #'   port, start_server = function(app) {}, ...)}.
 server_config = function(
-  dir = '.', host = '127.0.0.1', port, browser, daemon, interval = 1, baseurl = '',
-  initpath = ''
+  dir = '.', host = '127.0.0.1', port, browser, daemon,
+  interval = getOption('servr.interval', 1), baseurl = '',
+  initpath = '', verbose = TRUE
 ) {
   cargs = commandArgs(TRUE)
   if (missing(browser)) browser = interactive() || '-b' %in% cargs || is_rstudio()
@@ -136,17 +138,23 @@ server_config = function(
     if (browsed && !reopen) return(invisible(url))
     if (browser || reopen) browseURL(url, browser = get_browser())
     browsed <<- TRUE
-    if (!reopen) message('Serving the directory ', dir, ' at ', url)
+    if (verbose && !reopen) message('Serving the directory ', dir, ' at ', url)
   }
+  server = NULL
   list(
     host = host, port = port, interval = interval, url = url,
     start_server = function(app) {
       id = startServer(host, port, app)
-      if (daemon) daemon_hint(id); browse()
+      if (verbose && daemon) daemon_hint(id); browse()
+      server <<- id
       if (!daemon) while (TRUE) {
         httpuv::service(); Sys.sleep(0.001)
       }
       invisible(id)
+    },
+    stop_server = function() {
+      if (is.null(server)) stop('The server has not been started yet.')
+      stopServer(server)
     },
     browse = browse
   )

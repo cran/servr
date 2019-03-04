@@ -55,28 +55,13 @@ get_browser = function() {
   if (is_rstudio()) rstudioapi::viewer else getOption('browser')
 }
 
+pkg_file = function(...) {
+  system.file('resources', ..., package = 'servr', mustWork = TRUE)
+}
+
 rscript = function(code, input) {
   if (system2(file.path(R.home('bin'), 'Rscript'), code, stdout = NULL) != 0)
     stop('Failed to compile ', input, call. = FALSE)
-}
-
-new_timeout = function(interval, max_timeout = 32) {
-  old = NULL
-  int = interval  # stores initial value (may need to restore later)
-  function(delay = FALSE) {
-    now = Sys.time()
-    if (is.null(old)) old <<- now
-    # when delay = TRUE, wait for twice longer until returning TRUE (like Gmail)
-    if (!is.na(delay)) {
-      if (delay) {
-        int <<- min(2 * int, max_timeout)
-        message('\n* Retrying in ', int, ' second', if (int > 1) 's', '...\n')
-      } else int <<- interval
-    }
-    if (as.numeric(now - old) < int) return(FALSE)
-    old <<- now
-    TRUE
-  }
 }
 
 # use the output from the system utility mimetype if available
@@ -200,9 +185,9 @@ random_port = function(port = 4321L, host = '127.0.0.1', n = 20) {
 }
 
 port_available = function(port, host = '127.0.0.1') {
-  tmp = try(httpuv::startServer(host, port, list()), silent = TRUE)
+  tmp = try(startServer(host, port, list()), silent = TRUE)
   if (inherits(tmp, 'try-error')) return(FALSE)
-  httpuv::stopServer(tmp)
+  stopServer(tmp)
   TRUE
 }
 
