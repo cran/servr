@@ -29,8 +29,7 @@ http.server`. It may be used to serve:
 - [**googleVis**](https://cran.r-project.org/package=googleVis) charts (to avoid
   the Flash security issue)
 - D3 charts which need to load JSON from local files (see also the
-  [**animint**](https://github.com/tdhock/animint) package)
-- [**rCharts**](http://rcharts.io) and
+  [**animint**](https://github.com/tdhock/animint) package), and
   [**samatha**](https://github.com/DASpringate/samatha), etc
 
 You can either run `servr::httd()` in an interactive R session, or run from
@@ -38,16 +37,16 @@ command line:
 
 ```bash
 # default: port 4321, do not launch browser
-Rscript -e 'servr::httd()'
+Rscript -e "servr::httd()"
 
 # open a web browser
-Rscript -e 'servr::httd()' -b
+Rscript -e "servr::httd()" -b
 
 # listen on port 4000
-Rscript -e 'servr::httd()' -p4000
+Rscript -e "servr::httd()" -p4000
 
 # pass arguments to the httd() function
-Rscript -e 'servr::httd(,4000,TRUE)'
+Rscript -e "servr::httd(,4000,TRUE)"
 ```
 
 There is also a shell script under `system.file('bin', package = 'servr')`;

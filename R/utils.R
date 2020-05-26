@@ -206,12 +206,16 @@ read_raw = function(path) readBin(path, 'raw', file_size(path))
 
 # store the last browsing function, so that we can reopen a page after it has
 # been closed in the browser
-servrEnv$browse = function(reopen = TRUE) {}
+servrEnv$browse = function(reopen = TRUE) {
+  message('It seems you have not served any content with servr yet.')
+}
 
 #' Reopen the last browsed page
 #'
 #' If you have launched a page in the browser via \pkg{servr} but closed it
 #' later, you may call this function to reopen it.
+#' @param open Whether to reopen the lastly browsed page. If \code{FALSE}, the
+#'   URL of the previously browsed page will be returned.
 #' @export
 #' @examples servr::browse_last()
-browse_last = function() servrEnv$browse(TRUE)
+browse_last = function(open = TRUE) servrEnv$browse(open)
