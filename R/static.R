@@ -162,7 +162,7 @@ server_config = function(
 }
 
 serve_dir = function(dir = '.') function(req) {
-  owd = setwd(dir); on.exit(setwd(owd))
+  owd = setwd(dir); on.exit(setwd(owd), add = TRUE)
   path = decode_path(req)
   status = 200L
 
@@ -241,6 +241,6 @@ serve_dir = function(dir = '.') function(req) {
     headers = c(list('Content-Type' = type), if (status == 206L) list(
       'Content-Range' = paste0("bytes ", range[2], "-", range[3], "/", file_size(path))
       ),
-      'Accept-Ranges: bytes') # indicates that the server supports range requests
+      'Accept-Ranges' = 'bytes') # indicates that the server supports range requests
   )
 }
