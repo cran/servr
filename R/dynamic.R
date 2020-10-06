@@ -49,9 +49,9 @@
 #'   of the website if present. You should not pass \code{baseurl} to the
 #'   function \code{jekyll()} directly.
 #' @references R Markdown v1: \url{https://cran.r-project.org/package=markdown}. R
-#'   Markdown v2: \url{http://rmarkdown.rstudio.com}. For Jekyll, see
-#'   \url{http://jekyllrb.com}. The GitHub repository
-#'   \url{https://github.com/yihui/knitr-jekyll} is an example of serving Jekyll
+#'   Markdown v2: \url{https://rmarkdown.rstudio.com}. For Jekyll, see
+#'   \url{https://jekyllrb.com}. The GitHub repository
+#'   \url{https://github.com/yihui/blogdown-jekyll} is an example of serving Jekyll
 #'   websites with \code{servr::jekyll()}.
 #' @seealso The \pkg{blogdown} package (based on Hugo and R Markdown v2) is a
 #'   better alternative to Jekyll: \url{https://github.com/rstudio/blogdown/}. I
@@ -203,7 +203,7 @@ dynamic_site = function(
     },
     onWSOpen = function(ws) {
       ws$onMessage(function(binary, message) {
-        owd = setwd(dir); on.exit(setwd(owd))
+        owd = setwd(dir); on.exit(setwd(owd), add = TRUE)
         # send the result of build() to the websocket client
         ws$send(tryCatch(
           toJSON(build(fromJSON(message)), auto_unbox = TRUE, null = 'null'),
