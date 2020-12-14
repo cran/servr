@@ -1,7 +1,9 @@
 # servr
 
-[![Build Status](https://travis-ci.com/yihui/servr.svg)](https://travis-ci.com/yihui/servr)
-[![CRAN downloads from the RStudio mirror](https://cranlogs.r-pkg.org/badges/servr)](https://cran.r-project.org/package=servr)
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/yihui/servr/workflows/R-CMD-check/badge.svg)](https://github.com/yihui/servr/actions)
+<!-- badges: end -->
+
 
 A simple HTTP server to serve files under a given directory based on the
 [**httpuv**](https://cran.r-project.org/package=httpuv) package.
