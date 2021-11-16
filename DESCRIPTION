@@ -1,12 +1,13 @@
 Package: servr
 Type: Package
 Title: A Simple HTTP Server to Serve Static Files or Dynamic Documents
-Version: 0.23
+Version: 0.24
 Authors@R: c(
   person("Yihui", "Xie", role = c("aut", "cre"), email = "xie@yihui.name", comment = c(ORCID = "0000-0003-0645-5666")),
   person("Carson", "Sievert", role = "ctb"),
   person("Jesse", "Anderson", role = "ctb"),
   person("Ramnath", "Vaidyanathan", role = "ctb"),
+  person("Romain", "Lesur", role = "ctb"),
   person()
   )
 Description: Start an HTTP server in R to serve static files, or dynamic
@@ -21,11 +22,12 @@ BugReports: https://github.com/yihui/servr/issues
 Encoding: UTF-8
 RoxygenNote: 7.1.1
 NeedsCompilation: no
-Packaged: 2021-08-11 15:56:42 UTC; yihui
+Packaged: 2021-11-16 18:53:30 UTC; yihui
 Author: Yihui Xie [aut, cre] (<https://orcid.org/0000-0003-0645-5666>),
   Carson Sievert [ctb],
   Jesse Anderson [ctb],
-  Ramnath Vaidyanathan [ctb]
+  Ramnath Vaidyanathan [ctb],
+  Romain Lesur [ctb]
 Maintainer: Yihui Xie <xie@yihui.name>
 Repository: CRAN
-Date/Publication: 2021-08-11 16:40:02 UTC
+Date/Publication: 2021-11-16 19:20:02 UTC
