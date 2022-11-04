@@ -1,3 +1,29 @@
+#' Create a server
+#'
+#' Create a server with a custom handler to handle the HTTP request.
+#' @param ... Arguments to be passed to \code{\link{server_config}()}.
+#' @param handler A function that takes the HTTP request and returns a response.
+#' @param ws_open A function to be called back when a WebSocket connection is
+#'   established (see \code{httpuv::\link{startServer}()}).
+#' @export
+#' @examplesIf interactive()
+#' # always return "Success:" followed by the requested path
+#' s = servr::create_server(handler = function(req) {
+#'   list(status = 200L, body = paste('Success:', req$PATH_INFO))
+#' })
+#' s$url
+#'
+#' browseURL(paste0(s$url, '/hello'))
+#' browseURL(paste0(s$url, '/world'))
+#'
+#' s$stop_server()
+create_server = function(..., handler, ws_open = function(ws) NULL) {
+  res = server_config(...)
+  app = list(call = handler, onWSOpen = ws_open)
+  res$start_server(app)
+  invisible(res)
+}
+
 #' Serve static files under a directory
 #'
 #' If there is an \file{index.html} under this directory, it will be displayed;
@@ -13,18 +39,14 @@
 #' @param ... server configurations passed to \code{\link{server_config}()}
 #' @export
 #' @references \url{https://github.com/yihui/servr}
-#' @examples #' see https://github.com/yihui/servr for command line usage
-#' # or run inside an R session
-#' if (interactive()) servr::httd()
+#' @examplesIf interactive()
+#' servr::httd()
 httd = function(dir = '.', ...) {
   dir = normalizePath(dir, mustWork = TRUE)
   if (dir != '.') {
     owd = setwd(dir); on.exit(setwd(owd))
   }
-  res = server_config(dir, ...)
-  app = list(call = serve_dir(dir))
-  res$start_server(app)
-  invisible(res)
+  create_server(dir, ..., handler = serve_dir(dir))
 }
 
 #' @param watch a directory under which \code{httw()} is to watch for changes;
@@ -142,8 +164,8 @@ server_config = function(
   # rstudio viewer cannot display a page served at 0.0.0.0; use 127.0.0.1 instead
   host2 = if (host == '0.0.0.0' && is_rstudio()) '127.0.0.1' else host
   url = sprintf('http://%s:%d', hosturl(host2), port)
-  baseurl = gsub('^/+', '', baseurl)
-  if (baseurl != '') url = paste0(url, '/', baseurl)
+  baseurl = gsub('^/*', '/', baseurl)
+  if (baseurl != '/') url = paste0(url, baseurl)
   url = paste0(url, if (initpath != '' && !grepl('^/', initpath)) '/', initpath)
   browsed = FALSE
   servrEnv$browse = browse = function(reopen = FALSE) {
@@ -156,6 +178,17 @@ server_config = function(
   list(
     host = host, port = port, interval = interval, url = url, daemon = daemon,
     start_server = function(app) {
+      # modify PATH_INFO in the request when baseurl is provided (remove baseurl)
+      if (baseurl != '/' && is.function(app_call <- app$call)) {
+        app$call = function(req) {
+          path = decode_path(req)
+          if (substr(path, 1, nchar(baseurl)) == baseurl) {
+            path = substr(path, nchar(baseurl) + 1, nchar(path))
+            req$PATH_INFO = httpuv::encodeURIComponent(path)
+          }
+          app_call(req)
+        }
+      }
       id = startServer(host, port, app)
       if (verbose && daemon) daemon_hint(id); browse()
       server <<- id
