@@ -1,10 +1,10 @@
-c7d3592b35a00c29f22f5f6a7255fb00 *DESCRIPTION
-ce40906608c4ad6e0f62855afe7d3c0e *NAMESPACE
+5ac3f694ce9b994f916d9a7d728d5179 *DESCRIPTION
+024eeb085e82b3041314bbd34eeda3ab *NAMESPACE
 4168d7801909e39db24478187c5a2a31 *R/dynamic.R
 9e814c910054a2699e591c398f392473 *R/make.R
 efd3058e1251ebe263f89540f867b5e9 *R/redirect.R
-9fe69a3bff30c8f962b980346daf45e5 *R/static.R
-92feeb36d56d8e6f945cda0c08616467 *R/utils.R
+4a33ccfdc7543d28334609a043933b38 *R/static.R
+39de1cac67a9cda34c5712f62f00bb11 *R/utils.R
 b48e00d050304a20e28ae60a539a92d2 *R/vignette.R
 0b5a9da004895d02aa21fab174b472d1 *inst/NEWS.Rd
 fc9da638f6d40f28c40576caaddf45d8 *inst/bin/servr
@@ -16,6 +16,7 @@ fc9da638f6d40f28c40576caaddf45d8 *inst/bin/servr
 01cc4d86e2266754973c78add6cebbc1 *inst/resources/rnotebook.html
 383f72bd1822a00fe34910b1e9ea77a4 *inst/resources/ws-create.html
 db7df5797a43dc9fd69a72e7ae3d0825 *inst/resources/ws-reload.js
+3cb9c8da27accc59596bfc5282e5d55e *man/auth_basic.Rd
 fdafe4c2cb2a5d4a1653916d81c6620d *man/browse_last.Rd
 e0e52182ec8fc1ad3ee881a093708db1 *man/create_server.Rd
 f7aa32b59a509a127b2473893441d6f1 *man/daemon_stop.Rd
@@ -25,5 +26,5 @@ fdecb418fbcf7505e9edb05df118e62e *man/make.Rd
 a697f9c83e3f1b675de899d26e8324c5 *man/random_port.Rd
 36e4f3e0ccd275352ff1787364a8866b *man/redirect.Rd
 b58acfe9a5ef0ccf48a30426e6a50da0 *man/serve_example.Rd
-08d43466b6d88305ce17f151216edd49 *man/server_config.Rd
+e3bea4b2e9abfe8ccc3eb41540f75005 *man/server_config.Rd
 4b3e1e19c83a397bda8ffbb54189dcad *man/vign.Rd
