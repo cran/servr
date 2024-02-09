@@ -2,10 +2,13 @@
 % Please edit documentation in R/static.R
 \name{httd}
 \alias{httd}
+\alias{httr}
 \alias{httw}
 \title{Serve static files under a directory}
 \usage{
-httd(dir = ".", ...)
+httd(dir = ".", ..., response = NULL)
+
+httr(dir = ".", ...)
 
 httw(
   dir = ".",
@@ -20,23 +23,27 @@ httw(
 \arguments{
 \item{dir}{The root directory to serve.}
 
-\item{...}{server configurations passed to \code{\link{server_config}()}}
+\item{...}{Server configurations passed to \code{\link{server_config}()}.}
 
-\item{watch}{a directory under which \code{httw()} is to watch for changes;
-if it is a relative path, it is relative to the \code{dir} argument}
+\item{response}{A function of the form \code{function(path, res, ...)} that
+takes a file path and server response as input, and return a new response.
+This can be useful for post-processing the response (for experts only).}
 
-\item{pattern}{a regular expression passed to \code{\link{list.files}()} to
-determine the files to watch}
+\item{watch}{A directory under which \code{httw()} is to watch for changes.
+If it is a relative path, it is relative to the \code{dir} argument.}
 
-\item{all_files}{whether to watch all files including the hidden files}
+\item{pattern}{A regular expression passed to \code{\link{list.files}()} to
+determine the files to watch.}
 
-\item{filter}{a function to filter the file paths returned from
+\item{all_files}{Whether to watch all files including the hidden files.}
+
+\item{filter}{A function to filter the file paths returned from
 \code{list.files()} (e.g., you can exclude certain files from the watch
-list)}
+list).}
 
-\item{handler}{a function to be called every time any files are changed or
+\item{handler}{A function to be called every time any files are changed or
 added under the directory; its argument is a character vector of the
-filenames of the files modified or added}
+filenames of the files modified or added.}
 }
 \description{
 If there is an \file{index.html} under this directory, it will be displayed;
@@ -45,10 +52,18 @@ run this function, we can go to \samp{http://localhost:port} to browse the
 web pages either created from R or read from HTML files.
 }
 \details{
-\code{httd()} is a pure static server, and \code{httw()} is similar but
-watches for changes under the directory: if an HTML file is being viewed in
-the browser, and any files are modified under the directory, the HTML page
-will be automatically refreshed.
+\code{httd()} is a static file server by default (its \code{response}
+argument can turn it into a dynamic file server).
+
+\code{httr()} is based on \code{httr()} with a custom
+  \code{response} function that executes R files via \code{xfun::record()},
+  so that you will see the output of an R script as an HTML page. The page
+  will be automatically updated when the R script is modified and saved.
+
+\code{httw()} is similar to \code{httd()} but watches for changes
+  under the directory: if an HTML file is being viewed in the browser, and
+  any files are modified under the directory, the HTML page will be
+  automatically refreshed.
 }
 \examples{\dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 servr::httd()

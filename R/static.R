@@ -31,35 +31,93 @@ create_server = function(..., handler, ws_open = function(ws) NULL) {
 #' run this function, we can go to \samp{http://localhost:port} to browse the
 #' web pages either created from R or read from HTML files.
 #'
-#' \code{httd()} is a pure static server, and \code{httw()} is similar but
-#' watches for changes under the directory: if an HTML file is being viewed in
-#' the browser, and any files are modified under the directory, the HTML page
-#' will be automatically refreshed.
+#' \code{httd()} is a static file server by default (its \code{response}
+#' argument can turn it into a dynamic file server).
 #' @inheritParams server_config
-#' @param ... server configurations passed to \code{\link{server_config}()}
+#' @param ... Server configurations passed to \code{\link{server_config}()}.
+#' @param response A function of the form \code{function(path, res, ...)} that
+#'   takes a file path and server response as input, and return a new response.
+#'   This can be useful for post-processing the response (for experts only).
 #' @export
 #' @references \url{https://github.com/yihui/servr}
 #' @examplesIf interactive()
 #' servr::httd()
-httd = function(dir = '.', ...) {
+httd = function(dir = '.', ..., response = NULL) {
   dir = normalizePath(dir, mustWork = TRUE)
   if (dir != '.') {
     owd = setwd(dir); on.exit(setwd(owd))
   }
-  create_server(dir, ..., handler = serve_dir(dir))
+  create_server(dir, ..., handler = serve_dir(dir, response))
 }
 
-#' @param watch a directory under which \code{httw()} is to watch for changes;
-#'   if it is a relative path, it is relative to the \code{dir} argument
-#' @param pattern a regular expression passed to \code{\link{list.files}()} to
-#'   determine the files to watch
-#' @param all_files whether to watch all files including the hidden files
-#' @param filter a function to filter the file paths returned from
+#' @details \code{httr()} is based on \code{httr()} with a custom
+#'   \code{response} function that executes R files via \code{xfun::record()},
+#'   so that you will see the output of an R script as an HTML page. The page
+#'   will be automatically updated when the R script is modified and saved.
+#' @rdname httd
+#' @export
+httr = function(dir = '.', ...) {
+  dir = normalizePath(dir, mustWork = TRUE)
+  js = xfun::file_string(pkg_file('ws-update.js'))
+  interval = NULL
+  db = list()  # cache based on mtime of files
+  is_r = function(p) grepl('[.][Rr]$', p)
+  ret = httd(dir, ..., response = function(path, res) {
+    if (is_r(path)) {
+      path = sub('^[.]/', '', path)
+      if (is.raw(code <- res$body)) code = sub('\r?\n$', '', rawToChar(code))
+      res$body = run_r(path, code, template = TRUE)
+      db[[path]] <<- file.mtime(path)
+      res$headers[['Content-Type']] = 'text/html'
+      # wait for `interval` to be initialized below
+      while (!is.numeric(interval)) Sys.sleep(.1)
+      res = add_js(res, js, interval, path)
+    }
+    res
+  },
+  ws_open = function(ws) {
+    ws$onMessage(function(binary, message) {
+      owd = setwd(dir); on.exit(setwd(owd), add = TRUE)
+      send = function(x = '') ws$send(x)
+      if (!is.character(p <- message) || !is_r(p)) return(send())
+      t1 = db[[p]]; t2 = file.mtime(p)
+      # skip if the R script has not been updated
+      if (is.null(t1) || t1 >= t2) return(send())
+      db[[p]] <<- t2
+      # send new results onto the HTML page
+      send(tryCatch(run_r(p), error = function(e) {
+        warning(e$message, call. = FALSE, immediate. = TRUE)
+        paste('Error:', e$message)
+      }))
+    })
+  })
+  interval = ret$interval
+  invisible(ret)
+}
+
+run_r = function(path, code = xfun::read_utf8(path), ...) {
+  res = in_dir(dirname(path), xfun::record(
+    code, dev.path = paste0(xfun::sans_ext(basename(path)), '_files/figure/'),
+    error = TRUE, envir = globalenv()
+  ))
+  paste2(format(res, 'html', ...))
+}
+
+#' @details \code{httw()} is similar to \code{httd()} but watches for changes
+#'   under the directory: if an HTML file is being viewed in the browser, and
+#'   any files are modified under the directory, the HTML page will be
+#'   automatically refreshed.
+#' @param watch A directory under which \code{httw()} is to watch for changes.
+#'   If it is a relative path, it is relative to the \code{dir} argument.
+#' @param pattern A regular expression passed to \code{\link{list.files}()} to
+#'   determine the files to watch.
+#' @param all_files Whether to watch all files including the hidden files.
+#' @param filter A function to filter the file paths returned from
 #'   \code{list.files()} (e.g., you can exclude certain files from the watch
-#'   list)
-#' @param handler a function to be called every time any files are changed or
+#'   list).
+#' @param handler A function to be called every time any files are changed or
 #'   added under the directory; its argument is a character vector of the
-#'   filenames of the files modified or added
+#'   filenames of the files modified or added.
 #' @rdname httd
 #' @export
 httw = function(
@@ -171,6 +229,7 @@ server_config = function(
   }
   port = as.integer(port)
   if (missing(daemon)) daemon = getOption('servr.daemon', ('-d' %in% cargs) || interactive())
+  if (!is.numeric(interval)) interval = as.numeric(interval)
   # rstudio viewer cannot display a page served at 0.0.0.0; use 127.0.0.1 instead
   host2 = if (host == '0.0.0.0' && is_rstudio()) '127.0.0.1' else host
   url = sprintf('http://%s:%d', hosturl(host2), port)
@@ -228,7 +287,7 @@ modify_path = function(req, baseurl) {
   req
 }
 
-serve_dir = function(dir = '.') function(req) {
+serve_dir = function(dir = '.', response = NULL) function(req) {
   owd = setwd(dir); on.exit(setwd(owd), add = TRUE)
   path = decode_path(req)
   status = 200L
@@ -238,11 +297,7 @@ serve_dir = function(dir = '.') function(req) {
   } else if (path == '') path = '.'
   body = if (file_test('-d', path)) {
     # ensure a trailing slash if the requested dir does not have one
-    if (path != '.' && !grepl('/$', path)) return(list(
-      status = 301L, body = '', headers = list(
-        'Location' = sprintf('%s/', req$PATH_INFO)
-      )
-    ))
+    if (path != '.' && !grepl('/$', path)) return(redirect(sprintf('%s/', req$PATH_INFO)))
     type = 'text/html'
     if (file.exists(idx <- file.path(path, 'index.html'))) {
       readLines(idx, warn = FALSE)
@@ -274,13 +329,13 @@ serve_dir = function(dir = '.') function(req) {
     range = req$HTTP_RANGE
 
     if (is.null(range)) {
-      read_raw(path)
+      xfun::read_bin(path)
     } else {
       range = strsplit(range, split = "(=|-)")[[1]]
       b2 = as.numeric(range[2])
       if (length(range) == 2 && range[1] == "bytes") {
         # open-ended range request
-        # e.g. Chrome sends the range reuest 'bytes=0-'
+        # e.g. Chrome sends the range request 'bytes=0-'
         # http://stackoverflow.com/a/18745164/559676
         range[3] = file_size(path) - 1
       }
@@ -303,11 +358,12 @@ serve_dir = function(dir = '.') function(req) {
     }
   }
   if (is.character(body) && length(body) > 1) body = paste2(body)
-  list(
+  res = list(
     status = status, body = body,
     headers = c(list('Content-Type' = type), if (status == 206L) list(
       'Content-Range' = paste0("bytes ", range[2], "-", range[3], "/", file_size(path))
       ),
       'Accept-Ranges' = 'bytes') # indicates that the server supports range requests
   )
+  if (is.function(response)) response(path, res) else res
 }

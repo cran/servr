@@ -1,7 +1,7 @@
 Package: servr
 Type: Package
 Title: A Simple HTTP Server to Serve Static Files or Dynamic Documents
-Version: 0.28
+Version: 0.29
 Authors@R: c(
   person("Yihui", "Xie", role = c("aut", "cre"), email = "xie@yihui.name", comment = c(ORCID = "0000-0003-0645-5666")),
   person("Carson", "Sievert", role = "ctb"),
@@ -15,15 +15,15 @@ Description: Start an HTTP server in R to serve static files, or dynamic
     documents that can be converted to HTML files (e.g., R Markdown) under a
     given directory.
 Depends: R (>= 3.0.0)
-Imports: mime (>= 0.2), httpuv (>= 1.5.2), xfun, jsonlite
+Imports: mime (>= 0.2), httpuv (>= 1.5.2), xfun (>= 0.42), jsonlite
 Suggests: tools, later, rstudioapi, knitr (>= 1.9), rmarkdown
 License: GPL
 URL: https://github.com/yihui/servr
 BugReports: https://github.com/yihui/servr/issues
 Encoding: UTF-8
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 NeedsCompilation: no
-Packaged: 2023-12-19 14:25:55 UTC; yihui
+Packaged: 2024-02-09 05:43:17 UTC; yihui
 Author: Yihui Xie [aut, cre] (<https://orcid.org/0000-0003-0645-5666>),
   Carson Sievert [ctb],
   Jesse Anderson [ctb],
@@ -32,4 +32,4 @@ Author: Yihui Xie [aut, cre] (<https://orcid.org/0000-0003-0645-5666>),
   Posit Software, PBC [cph, fnd]
 Maintainer: Yihui Xie <xie@yihui.name>
 Repository: CRAN
-Date/Publication: 2023-12-19 15:00:02 UTC
+Date/Publication: 2024-02-09 06:20:03 UTC
