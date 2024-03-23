@@ -1,6 +1,6 @@
-1910b4883ceff2e1ad10f9b7f9764048 *DESCRIPTION
+4ce125a28c321c3b222e94514cbed9cf *DESCRIPTION
 fc5f226125b305f42ebdc2ce59b1c4b3 *NAMESPACE
-4461a245145960055a54cceadb92ca91 *R/dynamic.R
+95dc423085888605273cb9f4769ab1ed *R/dynamic.R
 9e814c910054a2699e591c398f392473 *R/make.R
 efd3058e1251ebe263f89540f867b5e9 *R/redirect.R
 32cb36742051a716010dd25bbc6e354a *R/static.R
@@ -14,8 +14,8 @@ fc9da638f6d40f28c40576caaddf45d8 *inst/bin/servr
 60f28d2b7e6eed3f3950da3efaf1dd90 *inst/examples/make2/example.Rmd
 52083539138ca1b113f11002bc3b1d47 *inst/examples/rmd/example.Rmd
 01cc4d86e2266754973c78add6cebbc1 *inst/resources/rnotebook.html
-5824dabeca3a9392e2f04372dbd610ca *inst/resources/ws-reload.js
-cfe84763066cfe762a2bdb1daec216ac *inst/resources/ws-update.js
+3fc9fd5d5c2efa12a5d817c95f2cb5b5 *inst/resources/ws-reload.js
+79db4c00cb303f0223426971ed584fbc *inst/resources/ws-update.js
 3cb9c8da27accc59596bfc5282e5d55e *man/auth_basic.Rd
 fdafe4c2cb2a5d4a1653916d81c6620d *man/browse_last.Rd
 e0e52182ec8fc1ad3ee881a093708db1 *man/create_server.Rd
