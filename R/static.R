@@ -4,7 +4,7 @@
 #' @param ... Arguments to be passed to \code{\link{server_config}()}.
 #' @param handler A function that takes the HTTP request and returns a response.
 #' @param ws_open A function to be called back when a WebSocket connection is
-#'   established (see \code{httpuv::\link{startServer}()}).
+#'   established (see \code{httpuv::\link[httpuv]{startServer}()}).
 #' @export
 #' @examplesIf interactive()
 #' # always return "Success:" followed by the requested path
@@ -50,7 +50,7 @@ httd = function(dir = '.', ..., response = NULL) {
   create_server(dir, ..., handler = serve_dir(dir, response))
 }
 
-#' @details \code{httr()} is based on \code{httr()} with a custom
+#' @details \code{httr()} is based on \code{httd()} with a custom
 #'   \code{response} function that executes R files via \code{xfun::record()},
 #'   so that you will see the output of an R script as an HTML page. The page
 #'   will be automatically updated when the R script is modified and saved.
@@ -188,7 +188,15 @@ watch_dir = function(
 #'   \code{options(servr.daemon = TRUE)}); if this option was not set,
 #'   \code{daemon = TRUE} if a command line argument \code{-d} was passed to R
 #'   (through \command{Rscript}), or the server is running in an interactive R
-#'   session.
+#'   session. Note, however, that even though the server does not block the
+#'   current R session, it is running in the same single-threaded process.
+#'   Therefore, if a request is made from this same session, the client and
+#'   server \emph{will} block each other. If this is your use case, a better
+#'   solution is to use a package such as \code{callr} to run a \code{servr}
+#'   in a separate process, e.g, \code{rx <- callr::r_bg(function()
+#'   servr::httd(daemon = FALSE)); do_stuff(); rx$kill()} (the
+#'   \code{do_stuff()} function may want to wait a couple of seconds before
+#'   making requests, to allow the server time to start).
 #' @param interval The time interval used to check if an HTML page needs to be
 #'   rebuilt (by default, it is checked every second).
 #' @param baseurl The base URL (the full URL will be
@@ -303,7 +311,7 @@ serve_dir = function(dir = '.', response = NULL) function(req) {
       readLines(idx, warn = FALSE)
     } else {
       d = file.info(list.files(path, all.files = TRUE, full.names = TRUE))
-      title = escape_html(path)
+      title = xfun:::escape_html(path)
       html_doc(c(sprintf('<h1>Index of %s</h1>', title), fileinfo_table(d)),
                title = title)
     }
@@ -317,13 +325,15 @@ serve_dir = function(dir = '.', response = NULL) function(req) {
     # because it will be treated as /foo/bar/404.html; if 404.html contains
     # paths like ./css/style.css, I don't know how to let the browser know that
     # it means /css/style.css instead of /foo/bar/css/style.css
-    if (!file.exists(path))
-      return(if (try_404(path)) list(
-        status = 302L, body = '', headers = list('Location' = '/404.html')
-      ) else list(
-        status = 404L, headers = list('Content-Type' = 'text/plain'),
-        body = paste2('Not found:', path)
-      ))
+    if (!file.exists(path)) return(if (path == './favicon.ico') list(
+      status = 200L, body = xfun::read_bin(file.path(R.home('doc'), 'html', 'favicon.ico')),
+      headers = list('Content-Type' = 'image/x-icon')
+    ) else if (try_404(path)) list(
+      status = 302L, body = '', headers = list('Location' = '/404.html')
+    ) else list(
+      status = 404L, headers = list('Content-Type' = 'text/plain'),
+      body = paste2('Not found:', path)
+    ))
 
     type = guess_type(path)
     range = req$HTTP_RANGE
